@@ -1,19 +1,19 @@
-require 'AssetTagHelper'
-require 'MagickMan'
+#require 'AssetTagHelper'
+require 'magickman'
 
 # configure magickman
-MagickMan::MagickMan.config do |conf|
+Magickman::MagickMan.config do |conf|
 # path to convert
-  conf.convert = '#{@convert}'
+  conf[:convert] = '<%= @convert  %>'
 # prefix to active magickman server: default 'magickman'
-  conf.prefix = '#{@prefix}'
+  conf[:prefix] = '<%= @prefix %>'
 # destination folder for newly created files: default 'public'
-  conf.target = '#{@target}'
-  conf.csep = '[.]'
+  conf[:target] = '<%= @target %>'
+  conf[:csep] = '.'
 # types of files to handle
-  conf.type = %W[jpg png]
+  conf[:type] = %W[jpg png]
 # named formats
-  conf.formats = {
+  conf[:formats] = {
 # non-cropping, best-fit
     :thumb =>  '-resize 100 100>',
     :small =>  '-resize 400 400>',
@@ -27,7 +27,7 @@ end
 
 # setup the intercept route for the controller
 Rails.application.routes.prepend do
-  get "#{@prefix}/*imgpath", :to=>"magickman/MagickmanController#serve"
+  get "<%= @prefix %>/*imgpath", :to=>"magick_man#serve"
 end
 
 # enable the tag

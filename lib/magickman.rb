@@ -1,7 +1,7 @@
-require "magickman/version"
+require "magick_man/version"
 require 'fileutils'
 
-module MagickMan
+module Magickman
   class MagickMan
     def self.instance(conf = {})
       @@instance ||= MagickMan.new conf
@@ -19,7 +19,7 @@ module MagickMan
       r = nil
       ff = @formats[fmt]
       if(ff)
-        if src =~ /^(\/)?(.*?)[.](#{'|'.join(@formats.keys)})$/
+        if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
           ext = @preferred || $3
           r= "#{@prefix}/#{$2}#{@csep}#{fmt}.#{ext}"
         end
@@ -28,10 +28,9 @@ module MagickMan
     end
     
     def supportsType?(filepath) 
-      ind = filepath.rindex(@csep)
+      ind = filepath.rindex('.')
       str = filepath[(ind+1)..-1]
-       puts "testing type #{str}"
-      @types.contains(str)
+      @types.include?(str)
     end
     
     def initialize(conf)
@@ -39,7 +38,7 @@ module MagickMan
       @convert = conf[:convert] || '/usr/local/bin/convert'
       @csep = conf[:csep] || '.'
       @desttype = conf[:desttype]
-      @targetbase = conf[:target] || Rails.public_path
+      @targetbase = conf[:target] || Rails.public_path.to_s
       @prefix = conf[:prefix] || 'magickman'
       @types =  conf[:types] || %W[jpg png]
       @formats =  conf[:formats] || {
@@ -49,7 +48,7 @@ module MagickMan
         }
       @srcpaths = conf[:sources] || []
       if not conf[:ignorestd]
-        @srcpaths.push Rails.public_path 
+        @srcpaths.push Rails.public_path.to_s 
         @srcpaths.concat Rails.application.config.assets.paths.reject { |p|
             not p.end_with?('images')
         };
@@ -60,8 +59,9 @@ module MagickMan
 
     def findimage(path)
       @srcpaths.each { |p|
-        if File.exists("#{p}/#{path}")
-          return "#{p}/#{path}"
+        ts = "#{p}/#{path}"
+        if File.exists? t
+          return t
         end  
       }
       nil
@@ -72,8 +72,8 @@ module MagickMan
       format = nil
       # derive the source name, if any
       @formats.each_key { |k|
-        if path =~ /^(.*)#{csep}(#{k})[.]([a-z]+)$/
-          if(@types.contains $3)
+        if path =~ /^(.*)#{@csep}(#{k})[.]([a-z]+)$/
+          if(@types.include? $3)
             pp = "#{$1}.#{@desttype || $3}"
             format = $2;
           end
@@ -84,7 +84,7 @@ module MagickMan
         :target => "#{@targetbase}/#{path}",
         :source => source,
         :format => format,
-        :transform => @formats[format]
+        :transform => @formats[format.to_sym]
       }
       end
       nil
@@ -92,7 +92,7 @@ module MagickMan
     
     def convert(options)
       target = options[:target]
-      base = Dir.basename(target)
+      base = Dir.basename target
       FileUtils.mkpath base
       %x[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       not $?
