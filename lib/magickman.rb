@@ -1,10 +1,10 @@
-require "magick_man/version"
+#require "magickman/version"
 require 'fileutils'
 
-module Magickman
-  class MagickMan
+module MagickMan
+  class MagickManager
     def self.instance(conf = {})
-      @@instance ||= MagickMan.new conf
+      @@instance ||= MagickManager.new conf
     end
 
     def self.config
@@ -12,7 +12,14 @@ module Magickman
       if block_given?
         yield mm
       end
-      MagickMan.instance mm
+      MagickManager.instance mm
+    end
+    
+    def bootstrap_controller
+	 	cc = File.join(File.dirname(__FILE__),'rails/app/controllers')
+    Rails.application.paths["app/controllers"] <<  cc
+		$LOAD_PATH << cc
+		require 'magick_man/magick_man_controller'
     end
     
     def format(src,fmt) 
@@ -21,7 +28,8 @@ module Magickman
       if(ff)
         if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
           ext = @preferred || $3
-          r= "#{@prefix}/#{$2}#{@csep}#{fmt}.#{ext}"
+          r= "/#{@prefix}/images/#{$2}#{@csep}#{fmt}.#{ext}"
+		  puts "formats returning #{r}"
         end
       end
       r
@@ -29,6 +37,9 @@ module Magickman
     
     def supportsType?(filepath) 
       ind = filepath.rindex('.')
+      if not ind 
+       return false
+      end
       str = filepath[(ind+1)..-1]
       @types.include?(str)
     end
@@ -66,19 +77,17 @@ module Magickman
       }
       nil
     end
-        
-    def findsource(path)
+  
+  def findsource(path)
       pp = path
       format = nil
       # derive the source name, if any
-      @formats.each_key { |k|
-        if path =~ /^(.*)#{@csep}(#{k})[.]([a-z]+)$/
-          if(@types.include? $3)
-            pp = "#{$1}.#{@desttype || $3}"
-            format = $2;
-          end
-        end
-      }
+      if path =~ /^(.*?)#{@csep}(#{@formats.keys.join '|'})[.](#{@types.join '|'})/
+         puts "matched"
+         format = $3
+         pp = "#{$1}.#{@desttype || $3}"
+      end
+
       if format && (source = findimage pp) then return {
         :directory => @targetbase,
         :target => "#{@targetbase}/#{path}",
@@ -89,10 +98,10 @@ module Magickman
       end
       nil
     end
-    
+        
     def convert(options)
       target = options[:target]
-      base = Dir.basename target
+      base = File.dirname target
       FileUtils.mkpath base
       %x[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       not $?

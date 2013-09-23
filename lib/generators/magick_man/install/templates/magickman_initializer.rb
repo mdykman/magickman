@@ -2,7 +2,7 @@
 require 'magickman'
 
 # configure magickman
-Magickman::MagickMan.config do |conf|
+mm = MagickMan::MagickManager.config do |conf|
 # path to convert
   conf[:convert] = '<%= @convert  %>'
 # prefix to active magickman server: default 'magickman'
@@ -25,9 +25,11 @@ Magickman::MagickMan.config do |conf|
 #  conf.sources = %W[public]
 end
 
+mm.bootstrap_controller
+
 # setup the intercept route for the controller
 Rails.application.routes.prepend do
-  get "<%= @prefix %>/*imgpath", :to=>"magick_man#serve"
+  get "<%= @prefix %>/*imgpath", :to=>"magick_man/magick_man#serve", :as => '<%= @prefix %>'
 end
 
 # enable the tag
@@ -35,8 +37,8 @@ module ActionView
   module Helpers
     module AssetTagHelper
       def magick_image_tag(source, format, options = {})
-        mm = MagickMan::MagickMan.instance
-        src = mm.format source
+        mm = MagickMan::MagickManager.instance
+        src = mm.format source, format
         image_tag src, options
       end
     end
