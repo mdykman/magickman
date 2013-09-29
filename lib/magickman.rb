@@ -35,15 +35,10 @@ module MagickMan
       r
     end
     
-    def supportsType?(filepath) 
-      ind = filepath.rindex('.')
-      if not ind 
-       return false
-      end
-      str = filepath[(ind+1)..-1]
+    def supportsType?(str) 
       @types.include?(str)
-    end
-    
+	 end
+
     def initialize(conf)
       @preferred = conf[:preferred]
       @convert = conf[:convert] || '/usr/local/bin/convert'
@@ -56,13 +51,13 @@ module MagickMan
           :small=>  '-resize 100 100>',
           :medium=> '-resize 400 400>',
           :large=>  '-resize 800 800>'
-        }
+      }
       @srcpaths = conf[:sources] || []
       if not conf[:ignorestd]
         @srcpaths.push Rails.public_path.to_s 
-        @srcpaths.concat Rails.application.config.assets.paths.reject { |p|
-            not p.end_with?('images')
-        };
+        @srcpaths.concat Rails.application.config.assets.paths.select { 
+          |p| p.end_with?('images') }.map { 
+            |q| File.dirname q }
         
       end
     end
@@ -71,8 +66,9 @@ module MagickMan
     def findimage(path)
       @srcpaths.each { |p|
         ts = "#{p}/#{path}"
-        if File.exists? t
-          return t
+		  puts "searching #{ts}"
+        if File.exists? ts
+          return ts
         end  
       }
       nil
@@ -84,7 +80,7 @@ module MagickMan
       # derive the source name, if any
       if path =~ /^(.*?)#{@csep}(#{@formats.keys.join '|'})[.](#{@types.join '|'})/
          puts "matched"
-         format = $3
+         format = $2
          pp = "#{$1}.#{@desttype || $3}"
       end
 
@@ -100,11 +96,15 @@ module MagickMan
     end
         
     def convert(options)
+      puts "convert options #{options.inspect}"
       target = options[:target]
       base = File.dirname target
+      puts "convert:: target  #{target}, base  #{base}"
       FileUtils.mkpath base
+      puts %Q[command line:: #{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       %x[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
-      not $?
+      result = $?
+      return (0 == result.exitstatus)
     end
 
   end

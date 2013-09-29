@@ -15,13 +15,14 @@ mm = MagickMan::MagickManager.config do |conf|
 # named formats
   conf[:formats] = {
 # non-cropping, best-fit
-    :thumb =>  '-resize 100 100>',
-    :small =>  '-resize 400 400>',
-    :medium => '-resize 600 600>',
-    :large =>  '-resize 800 800>'
+    :thumb =>  '-resize 100x100\>',
+    :small =>  '-resize 400x400\>',
+    :medium => '-resize 600x600\>',
+    :large =>  '-resize 800x800\>'
   }
   
 # optionally limit/specify source directories
+# default behavioiur is to 
 #  conf.sources = %W[public]
 end
 
@@ -29,7 +30,7 @@ mm.bootstrap_controller
 
 # setup the intercept route for the controller
 Rails.application.routes.prepend do
-  get "<%= @prefix %>/*imgpath", :to=>"magick_man/magick_man#serve", :as => '<%= @prefix %>'
+  get "<%= @prefix %>/*imgpath(.:format)", :to=>"magick_man/magick_man#serve", :as => '<%= @prefix %>'
 end
 
 # enable the tag
