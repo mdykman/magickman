@@ -6,33 +6,25 @@ module MagickMan
     end
 
     def serve
-      # remove the first component
       filepath= "#{params[:imgpath]}.#{params[:format]}"
-#      puts "loading from req path #{filepath}"
-
       mm = MagickManager.instance
-
       if not mm.supportsType? params[:format]
-#        puts "unsupported type requested: #{params[:format]}"
+        logger.warn "unsupported type requested #{filepath}"
         redirect_to filepath, status: 302
         return
       end
 
-      img = mm.findimage(filepath)
+      img = mm.resolve filepath
       if not img
-        src = mm.findsource filepath
-        if src
-          rr = mm.convert src
-          if rr
-            img = src[:target]
-          end
+        nf = mm.notfound filepath
+        if nf
+          img = mm.resolve nf
         end
       end
 
       if File.exists? img
-#        puts "serving #{img}"
-        expires_in 30.days, :public => true
-        send_file img, :disposition => params[:attachment] ?  'attachment' : 'inline'
+        expires_in Integer(mm.cachetime).seconds, :public => true
+        send_file img, :disposition => params[:attachment] ? 'attachment':'inline'
         return
       else
         # let the regular resource server report the error

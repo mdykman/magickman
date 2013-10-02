@@ -12,6 +12,16 @@ mm = MagickMan::MagickManager.config do |conf|
   conf[:csep] = '.'
 # types of files to handle
   conf[:type] = %W[jpg png]
+# time, in seconds. for cache control header
+  conf[:cachetime] = 3600
+    
+#default not found image, processed as per requested type
+  conf[:notfound] = "notfound.png"
+ # custom, per-type.. not processed
+  conf[:notfoundtypes] = {
+    :thumb => 'thumbnot.jpg'
+  }
+  end
 # named formats
   conf[:formats] = {
 # non-cropping, best-fit

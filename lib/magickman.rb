@@ -14,12 +14,41 @@ module MagickMan
       end
       MagickManager.instance mm
     end
-    
+
+    def initialize(conf)
+        @cachetime = conf[:cachetime] || 3600
+        @preferred = conf[:preferred]
+        @convert = conf[:convert] || '/usr/local/bin/convert'
+        @csep = conf[:csep] || '.'
+        @desttype = conf[:desttype]
+        @notfound = conf[:notfound] || "notfound.png"
+        @notfoundtype = conf[:notfoundtypes] || {}
+        @targetbase = conf[:target] || Rails.public_path.to_s
+        @prefix = conf[:prefix] || 'magickman'
+        @types =  conf[:types] || %W[jpg png]
+        @formats =  conf[:formats] || {
+            :small=>  '-resize 100 100>',
+            :medium=> '-resize 400 400>',
+            :large=>  '-resize 800 800>'
+        }
+        @srcpaths = conf[:sources] || []
+        if not conf[:ignorestd]
+          @srcpaths.push Rails.public_path.to_s 
+          @srcpaths.concat Rails.application.config.assets.paths.select { 
+            |p| p.end_with?('images') }.map { 
+              |q| File.dirname q }
+          
+        end
+      end
+          
+      
+    # set the routes
     def bootstrap_controller
-	 	cc = File.join(File.dirname(__FILE__),'rails/app/controllers')
-    Rails.application.paths["app/controllers"] <<  cc
-		$LOAD_PATH << cc
-		require 'magick_man/magick_man_controller'
+      # put the controller on the path
+  	 	cc = File.join(File.dirname(__FILE__),'rails/app/controllers')
+      Rails.application.paths["app/controllers"] <<  cc
+  		$LOAD_PATH << cc
+  		require 'magick_man/magick_man_controller'
     end
     
     def format(src,fmt) 
@@ -29,39 +58,44 @@ module MagickMan
         if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
           ext = @preferred || $3
           r= "/#{@prefix}/images/#{$2}#{@csep}#{fmt}.#{ext}"
-		  puts "formats returning #{r}"
         end
       end
       r
     end
     
-    def supportsType?(str) 
+   def supportsType?(str) 
       @types.include?(str)
 	 end
-
-    def initialize(conf)
-      @preferred = conf[:preferred]
-      @convert = conf[:convert] || '/usr/local/bin/convert'
-      @csep = conf[:csep] || '.'
-      @desttype = conf[:desttype]
-      @targetbase = conf[:target] || Rails.public_path.to_s
-      @prefix = conf[:prefix] || 'magickman'
-      @types =  conf[:types] || %W[jpg png]
-      @formats =  conf[:formats] || {
-          :small=>  '-resize 100 100>',
-          :medium=> '-resize 400 400>',
-          :large=>  '-resize 800 800>'
-      }
-      @srcpaths = conf[:sources] || []
-      if not conf[:ignorestd]
-        @srcpaths.push Rails.public_path.to_s 
-        @srcpaths.concat Rails.application.config.assets.paths.select { 
-          |p| p.end_with?('images') }.map { 
-            |q| File.dirname q }
-        
-      end
-    end
-      # set the routes
+	 
+	 def resolve(filepath)
+     img = findimage(filepath)
+     if not img
+       src = findsource filepath
+       if src
+         img = src[:target]
+         logger.info "creating image ${img}"
+         rr = convert src
+       end
+     end
+     img
+	 end
+	 
+	 def notfound
+	   img = nil
+     if path =~ /^(.*?)#{@csep}(#{@formats.keys.join '|'})[.](#{@types.join '|'})/
+       img = @notfoundtype[$2.to_sym]
+       if not img
+         img = format @notfound,$2.to_sym
+       end
+     end
+     img
+	 end
+	 
+#	 def cachetime
+#	   @cachetime
+#	 end
+	 
+	 
 
     def findimage(path)
       @srcpaths.each { |p|
@@ -96,12 +130,11 @@ module MagickMan
     end
         
     def convert(options)
-      puts "convert options #{options.inspect}"
       target = options[:target]
       base = File.dirname target
-      puts "convert:: target  #{target}, base  #{base}"
+#      logger.info "convert: creating #{target}"
       FileUtils.mkpath base
-      puts %Q[command line:: #{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
+      puts  %Q[command line:: #{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       %x[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       result = $?
       return (0 == result.exitstatus)
