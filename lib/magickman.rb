@@ -15,6 +15,7 @@ module MagickMan
       MagickManager.instance mm
     end
 
+    
     def initialize(conf)
         @cachetime = conf[:cachetime] || 3600
         @preferred = conf[:preferred]
@@ -22,7 +23,7 @@ module MagickMan
         @csep = conf[:csep] || '.'
         @desttype = conf[:desttype]
         @notfound = conf[:notfound] || "notfound.png"
-        @notfoundtype = conf[:notfoundtypes] || {}
+        @notfoundtypes = conf[:notfoundtypes] || {}
         @targetbase = conf[:target] || Rails.public_path.to_s
         @prefix = conf[:prefix] || 'magickman'
         @types =  conf[:types] || %W[jpg png]
@@ -31,17 +32,14 @@ module MagickMan
             :medium=> '-resize 400 400>',
             :large=>  '-resize 800 800>'
         }
-        @srcpaths = conf[:sources] || []
-        if not conf[:ignorestd]
-          @srcpaths.push Rails.public_path.to_s 
-          @srcpaths.concat Rails.application.config.assets.paths.select { 
-            |p| p.end_with?('images') }.map { 
-              |q| File.dirname q }
-          
-        end
+        Rails.application.config.assets.paths << File.join(File.dirname(__FILE__),'assets/images')
+        @logger = conf[:logger]
       end
           
-      
+    
+      def cachetime
+        @cachetime
+      end  
     # set the routes
     def bootstrap_controller
       # put the controller on the path
@@ -52,15 +50,15 @@ module MagickMan
     end
     
     def format(src,fmt) 
-      r = nil
       ff = @formats[fmt]
       if(ff)
+        pp = parsefile src
         if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
           ext = @preferred || $3
-          r= "/#{@prefix}/images/#{$2}#{@csep}#{fmt}.#{ext}"
+          return "/#{@prefix}/images/#{$2}#{@csep}#{fmt}.#{ext}"
         end
       end
-      r
+      nil
     end
     
    def supportsType?(str) 
@@ -73,19 +71,29 @@ module MagickMan
        src = findsource filepath
        if src
          img = src[:target]
-         logger.info "creating image ${img}"
+         if @logger 
+           @logger.info "creating image ${img}"
+         end
          rr = convert src
        end
      end
      img
 	 end
 	 
-	 def notfound
-	   img = nil
+	 def parsefile(path)
      if path =~ /^(.*?)#{@csep}(#{@formats.keys.join '|'})[.](#{@types.join '|'})/
-       img = @notfoundtype[$2.to_sym]
+       return [$1,$2,$3]
+     end
+     nil
+	 end
+	 
+	 def notfound(path)
+	   img = nil
+	   pp = parsefile path
+     if pp
+       img = @notfoundtypes[pp[1].to_sym]
        if not img
-         img = format @notfound,$2.to_sym
+         img = format @notfound,pp[1].to_sym
        end
      end
      img
@@ -95,16 +103,32 @@ module MagickMan
 #	   @cachetime
 #	 end
 	 
-	 
-
-    def findimage(path)
-      @srcpaths.each { |p|
-        ts = "#{p}/#{path}"
-		  puts "searching #{ts}"
-        if File.exists? ts
-          return ts
-        end  
+    def clean
+      pp=Dir("#{@targetbase}/images/**/*#{csep}(#{@formats.keys.join '|'}).(@type.join '|')")
+      puts "clean found #{pp}"
+      pp.each {|p|
+        puts "deleting #{p}" 
+        p.delete 
       }
+    end
+      
+    def findimage(path)
+      ff = [Rails.public_path.to_s]
+      if not @ignorestd
+        ff.concat Rails.application.config.assets.paths.map { |p| 
+          File.dirname p
+        }.uniq
+      end
+      ff = ff.select { |p|
+ puts "searching for #{path} in #{p}/"
+        File.exists? "#{p}/#{path}"
+      }.map { |q|
+ puts "found #{q}/#{path}"
+        "#{q}/#{path}"
+      }.uniq
+      if(ff.length) 
+        return ff[0]
+      end
       nil
     end
   
@@ -112,10 +136,11 @@ module MagickMan
       pp = path
       format = nil
       # derive the source name, if any
-      if path =~ /^(.*?)#{@csep}(#{@formats.keys.join '|'})[.](#{@types.join '|'})/
-         puts "matched"
-         format = $2
-         pp = "#{$1}.#{@desttype || $3}"
+      pp = parsefile path
+      if pp
+puts "matched"
+         format = pp[1]
+         pp = "#{pp[0]}.#{@desttype || pp[2]}"
       end
 
       if format && (source = findimage pp) then return {
@@ -132,13 +157,15 @@ module MagickMan
     def convert(options)
       target = options[:target]
       base = File.dirname target
-#      logger.info "convert: creating #{target}"
+      if @logger
+        @logger.info "convert: creating #{target} from #{options[:source]}"
+      end
       FileUtils.mkpath base
-      puts  %Q[command line:: #{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
+#      puts  %Q[command line:: #{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       %x[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
       result = $?
       return (0 == result.exitstatus)
     end
-
+    
   end
 end

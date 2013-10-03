@@ -16,12 +16,13 @@ mm = MagickMan::MagickManager.config do |conf|
   conf[:cachetime] = 3600
     
 #default not found image, processed as per requested type
-  conf[:notfound] = "notfound.png"
+  conf[:notfound] = "not-found.jpg"
  # custom, per-type.. not processed
   conf[:notfoundtypes] = {
     :thumb => 'thumbnot.jpg'
   }
-  end
+
+  conf[:logger] = Logger.new(STDOUT)  
 # named formats
   conf[:formats] = {
 # non-cropping, best-fit
@@ -30,10 +31,7 @@ mm = MagickMan::MagickManager.config do |conf|
     :medium => '-resize 600x600\>',
     :large =>  '-resize 800x800\>'
   }
-  
-# optionally limit/specify source directories
-# default behavioiur is to 
-#  conf.sources = %W[public]
+
 end
 
 mm.bootstrap_controller
@@ -47,7 +45,7 @@ end
 module ActionView
   module Helpers
     module AssetTagHelper
-      def magick_image_tag(source, format, options = {})
+      def magick_tag(source, format, options = {})
         mm = MagickMan::MagickManager.instance
         src = mm.format source, format
         image_tag src, options

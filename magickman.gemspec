@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["mdykman@gmail.com"]
   spec.description   = %q{A system to serve custom resized images on demand}
   spec.summary       = %q{A system to serve custom processed images on demand}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/mdykman/magickman"
   spec.license       = "MIT"
 
   spec.requirements = "requires ImageMagick.  See the documentation for your platform"
