@@ -8,7 +8,12 @@ Gem::Specification.new do |spec|
   spec.version       = MagickMan::VERSION
   spec.authors       = ["Michael Dykman"]
   spec.email         = ["mdykman@gmail.com"]
-  spec.description   = %q{A system to serve custom resized images on demand}
+  spec.description   = <<PIM
+MagickMan is a Rails front-end manager for ImageMagick or any scriptable image processor.
+The installation of ImageMagick varies between platforms, please 
+consult the documentation for your platform.
+PIM
+
   spec.summary       = %q{A system to serve custom processed images on demand}
   spec.homepage      = "https://github.com/mdykman/magickman"
   spec.license       = "MIT"
@@ -17,17 +22,13 @@ Gem::Specification.new do |spec|
   
   spec.post_install_message = <<PIM
 Welcome to MagickMan(ager)
-MagickMan is a Rails front-end manager for ImageMagick.
-The installation of ImageMagick varies between platforms, please 
-consult the documentation for your platform.
  
 To use in a rails application, run the generator:
    $ rails generate magick_man:install
 
-this will create an initializer which contains relevant configuration at
-     config/initializers/magickman.rb
+  to create an initializer at config/initializers/magickman.rb
 
-That file should be edited manually to provide your own custom formats
+That file should be edited manually to provide your own custom formats.
 PIM
 
 #  spec.files         = `git ls-files`.split($/)

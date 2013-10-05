@@ -1,3 +1,3 @@
 module MagickMan
-  VERSION = "0.0.80"
+  VERSION = "0.0.98"
 end
