@@ -1,10 +1,9 @@
-#require "magickman/version"
+require 'magickman/version'
 require 'fileutils'
 
 module MagickMan
   class MagickManager
     attr :strict
-    
     def self.instance(conf = {})
       @@instance ||= MagickManager.new conf
     end
@@ -35,7 +34,7 @@ module MagickMan
         :large=>  '-resize 800 800>'
       }
       Rails.application.config.assets.paths << File.join(File.dirname(__FILE__),'assets/images')
-      @logger = conf[:logger]
+      @logger = conf[:logger] || Logger.new(STDOUT)
     end
 
     def cachetime
@@ -54,19 +53,19 @@ module MagickMan
     def prefix
       @prefix
     end
-   
+
     def formatlocal(src,fmt)
-         ff = @formats[fmt]
-         if(ff)
-           pp = parsefile src
-           if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
-             ext = @preferred || $3
-             return "images/#{$2}#{@csep}#{fmt}.#{ext}"
-           end
-         end
-         nil
-       end
- 
+      ff = @formats[fmt]
+      if(ff)
+        pp = parsefile src
+        if src =~ /^(\/)?([^\/].*?)[.](#{@types.join '|'})$/
+          ext = @preferred || $3
+          return "images/#{$2}#{@csep}#{fmt}.#{ext}"
+        end
+      end
+      nil
+    end
+
     def format(src,fmt)
       "/#{prefix}/#{formatlocal(src,fmt)}"
     end
@@ -129,10 +128,11 @@ module MagickMan
         }.uniq
       end
       ff = ff.select { |p|
+        @logger.info "searching #{p}/#{path}"
         File.exists? "#{p}/#{path}"
       }.map { |q|
-        if @logger 
-          @logger.info "found #{q}/#{path}" 
+        if @logger
+          @logger.info "found #{q}/#{path}"
         end
         "#{q}/#{path}"
       }.uniq
@@ -166,22 +166,43 @@ module MagickMan
     def convert(options)
       target = options[:target]
       base = File.dirname target
+      source = options[:source]
       transform = options[:transform]
       if @logger
-        @logger.info "convert: creating #{target} from #{options[:source]}"
+        @logger.info "convert: creating #{target} from #{source}"
       end
-      FileUtils.mkpath base
-      if transform.ltrim.chr != '-'
-        cmd = %Q[ #{options[:transform]} #{options[:source]}  #{options[:target]}]
+      if not File.exists? base
+        if @logger 
+          @logger.info "creating directory #{base}"
+        end
+        rr = FileUtils.mkpath base
+#        if(!rr)
+        if(true and @logger)
+          @logger.info "creating directory #{base} returned #{rr}"
+        end
+      end
+      if transform.lstrip.chr != '-'
+        cmd = %Q[ #{transform} #{source}  #{target}]
       else
-        cmd = %Q[#{@convert} #{options[:source]} #{options[:transform]} #{options[:target]}]
-      end
-      %x[#{cmd}]
-      if (0 == $?.exitstatus)
-        return true
+        cmd = %Q[ #{@convert} #{source} #{transform} #{target}]
       end
       if @logger
-        @logger.warn("convertion failed. #{$?.exitstatus} returned for command #{cmd}")
+        @logger.warn "command: #{cmd}"
+      end
+      outp = %x[#{cmd}]
+      if outp and outp.length
+        if @logger
+          @logger.warn outp
+        else
+          puts outp
+        end
+      end
+      if ((File.exists? target) and (0 == $?.exitstatus))
+        return true
+      end
+      
+      if @logger
+        @logger.warn "convertion failed. #{$?.exitstatus} returned for command #{cmd}"
       end
       false
     end
