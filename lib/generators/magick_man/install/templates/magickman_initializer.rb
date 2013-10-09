@@ -19,7 +19,7 @@ mm = MagickMan::MagickManager.config do |conf|
   conf[:notfound] = "not-found.jpg"
  # custom, per-type.. not processed
   conf[:notfoundtypes] = {
-    :thumb => 'thumbnot.jpg'
+#    :thumb => 'thumbnot.jpg'
   }
 
   conf[:logger] = Logger.new(STDOUT)  
@@ -38,6 +38,10 @@ mm.bootstrap_controller
 
 # setup the intercept route for the controller
 Rails.application.routes.prepend do
+# this is to enable the dev/admin page, may be disabled in production
+  get "<%= @prefix %>/manage", :to=>"magick_man/magick_man#manage", :as => '<%= @prefix %>_manage'
+
+  # this is the path for the core service
   get "<%= @prefix %>/*imgpath(.:format)", :to=>"magick_man/magick_man#serve", :as => '<%= @prefix %>'
 end
 

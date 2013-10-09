@@ -1,0 +1,49 @@
+<style>
+.row {
+	width:100%;
+	clear:both;
+}
+.label {
+	width:20%;
+	float: left;
+}
+.transform {
+	width:80%;
+	font-weight:bold;
+	float: left;
+}
+.imgdisplay {
+	width:45%;
+	float: left;
+}
+
+</style>
+
+<%
+	@mm.formats.keys.each { |p|
+%>
+
+<div class="row">
+	<div class="label">
+	<%= p.to_s %>
+	</div>
+	<div class="transform">
+	<%= @mm.formats[p] %>
+	</div>
+</div>
+
+<div class="row">
+	<div class="imgdisplay">
+		<%= magick_tag "magickman.jpg", p %>
+	</div>
+	<div class="imgdisplay">
+		<%= magick_tag "thisdoesnotexist.jpg", p %>
+	</div>
+</div>
+
+<hr />
+
+<%
+	}
+%>
+
