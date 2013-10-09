@@ -1,19 +1,19 @@
 <style>
-.row {
-	width:100%;
+
+.item {
 	clear:both;
 }
 .label {
-	width:20%;
-	float: left;
-}
-.transform {
-	width:80%;
+	width:6%;
 	font-weight:bold;
 	float: left;
 }
+.transform {
+	width:20%;
+	float: left;
+}
 .imgdisplay {
-	width:45%;
+	width:35%;
 	float: left;
 }
 
@@ -23,16 +23,14 @@
 	@mm.formats.keys.each { |p|
 %>
 
-<div class="row">
+<div class="item">
 	<div class="label">
-	<%= p.to_s %>
+	:<%= p.to_s %>
 	</div>
 	<div class="transform">
 	<%= @mm.formats[p] %>
 	</div>
-</div>
 
-<div class="row">
 	<div class="imgdisplay">
 		<%= magick_tag "magickman.jpg", p %>
 	</div>
