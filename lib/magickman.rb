@@ -3,7 +3,7 @@ require 'fileutils'
 
 module MagickMan
   class MagickManager
-    attr :strict
+
     def self.instance(conf = {})
       @@instance ||= MagickManager.new conf
     end
@@ -33,6 +33,7 @@ module MagickMan
         :medium=> '-resize 400 400>',
         :large=>  '-resize 800 800>'
       }
+      Rails.application.paths["app/views"] << File.join(File.dirname(__FILE__),'views')
       Rails.application.config.assets.paths << File.join(File.dirname(__FILE__),'assets/images')
       @logger = conf[:logger] || Logger.new(STDOUT)
     end
@@ -41,6 +42,13 @@ module MagickMan
       @cachetime
     end
 
+    def strict
+      @strict
+    end
+    
+    def formats
+      @formats
+    end
     # set the routes
     def bootstrap_controller
       # put the controller on the path

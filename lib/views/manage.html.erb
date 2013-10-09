@@ -1,0 +1,18 @@
+<%
+	mm = MagickMan::MagickManager.instance
+	mm.formats.keys.each { |p|
+%>
+
+<div>
+	<div>
+	<%= p.to_s %>
+	</div>
+	<div>
+	<%= mm.formats[p] %>
+	</div>
+</div>
+
+<%
+	}
+%>
+
