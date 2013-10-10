@@ -58,17 +58,14 @@ Under the default configuration, all newly created files are put in public/.
 ### formats
 
 Formats are specified in config/initializers/magickman.rb which should be
-created with the generator at instllation.  They may be editted to provide 
+created with the generator at instllation.  They may be edited to provide 
 a variety of custom formats according to your needs.
 
-The defaults formats are 
-  conf[:formats] = {
-##### non-cropping, best-fit
+#### defaults formats 
     :thumb =>  '-resize 100x100\>',
     :small =>  '-resize 400x400\>',
     :medium => '-resize 600x600\>',
     :large =>  '-resize 800x800\>'
-  }
 
 
 Formats are divided into 2 classes:  format string which begin with '-' are evaluated
@@ -84,11 +81,10 @@ When the format string does not begin with '-', it is assumed to be a custom com
 For a format string :watermark =>"/usr/local/bin/watermark.rb"
  $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
 
-Custom scripts can be in any language.  
-They should take input and output files from the command line arguments, 
-and exit with 0 upon success for maximum compatability. It is expected
-that the output image has been created or at least exists before a custom script 
-signals successful termination.
+#### custom scripts
+Custom scripts can be in any language.  They should take input and output files from the command line 
+arguments, and exit with 0 upon success for maximum compatability. It is expected that the output image 
+has been created or at least exists before a custom script signals successful termination.
 
 ### not-found handling
   magickman allows a custom not-found image on a per-type basis, via config[:notfoundtypes].  
