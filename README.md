@@ -1,12 +1,14 @@
 # Magickman
 
-TODO: Write a gem description
+MagickMan is a Rails front-end manager for ImageMagick or any scriptable image processor.
+The installation of ImageMagick varies between platforms, please 
+consult the documentation for your platform.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'magickman'
+    gem 'magickman', :git => "git@github.com:mdykman/magickman.git"
 
 And then execute:
 
@@ -14,7 +16,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install magickman
+    $ gem install magickman-{version}.gem
 	 	=> install magickman library
 
 	$ rails generate magickman [prefix] [resource_path]
