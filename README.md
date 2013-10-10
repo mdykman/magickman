@@ -43,7 +43,7 @@ the exception that it takes a 'format' argument.
 magick_tag uses image_tag for the actual rendering and therefore supports all the options 
 that image_tag does.
 
-## image generation
+### image generation
 New images are generated at the instigation of the magickman controller after it has searched 
 the resource paths for the requested image, always preferring to reuse existing images rather than 
 generate new ones. If the requested images is not found, it tests the file name against
@@ -55,7 +55,7 @@ on subsequent requests.
 Under the default configuration, all newly created files are put in public/.
 
 
-## formats
+### formats
 
 Formats are specified in config/initializers/magickman.rb which should be
 created with the generator at instllation.  They may be editted to provide 
@@ -63,7 +63,7 @@ a variety of custom formats according to your needs.
 
 The defaults formats are 
   conf[:formats] = {
-# non-cropping, best-fit
+##### non-cropping, best-fit
     :thumb =>  '-resize 100x100\>',
     :small =>  '-resize 400x400\>',
     :medium => '-resize 600x600\>',
@@ -90,7 +90,7 @@ and exit with 0 upon success for maximum compatability. It is expected
 that the output image has been created or at least exists before a custom script 
 signals successful termination.
 
-## not-found handling
+### not-found handling
   magickman allows a custom not-found image on a per-type basis, via config[:notfoundtypes].  
   It is assumed that files specified here have been pre-formatted according to their format
   type and therfore are not processed before serving.
