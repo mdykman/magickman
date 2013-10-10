@@ -71,14 +71,18 @@ a variety of custom formats according to your needs.
 Formats are divided into 2 classes:  format string which begin with '-' are evaluated
 as option string to be passed to the imagemagick 'convert' program.  This is a powerful 
 program which serves a wide variety of cases in a single command. 
+
  $ convert $formatstring $sourceimg $targetimg
+
 For a format string :large =>"-resize 800x800\>", requesting image 'foo.large.jpg', the command will be
+
   $ convert -resize 800x800\> assets/images/foo.jpg public/foo.large.jpg
 
-    assuming that foo.jpg has been located in assets/images/
+assuming that foo.jpg has been located in assets/images/
 
 When the format string does not begin with '-', it is assumed to be a custom command.
 For a format string :watermark =>"/usr/local/bin/watermark.rb"
+
  $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
 
 #### custom scripts
