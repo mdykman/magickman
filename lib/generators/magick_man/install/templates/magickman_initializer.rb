@@ -26,10 +26,15 @@ mm = MagickMan::MagickManager.config do |conf|
 # named formats
   conf[:formats] = {
 # non-cropping, best-fit
-    :thumb =>  '-resize 100x100\>',
-    :small =>  '-resize 400x400\>',
-    :medium => '-resize 600x600\>',
-    :large =>  '-resize 800x800\>'
+    :thumb =>  '-resize 50x50\>',
+    :small =>  '-resize 100x100\>',
+    :medium => '-resize 200x200\>',
+    :large =>  '-resize 400x400\>',
+# center-cropped, forced-fit
+    :ct => '-resize 50x50^ -gravity center -extent 50x50',
+    :cs => '-resize 100x100^ -gravity center -extent 100x100',
+    :cm => '-resize 200x200^ -gravity center -extent 200x200',
+    :cl => '-resize 400x400^ -gravity center -extent 400x400'
   }
 
 end

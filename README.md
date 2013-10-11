@@ -1,4 +1,4 @@
-# Magickman
+# Magickman for Rails
 
 MagickMan is a Rails front-end manager for ImageMagick or any scriptable image processor.
 The installation of ImageMagick varies between platforms, please 
@@ -19,19 +19,24 @@ Or install it yourself as:
     $ gem install magickman-{version}.gem
 	 	=> install magickman library
 
-	$ rails generate magickman [prefix] [resource_path]
+    $ rails generate magickman [prefix] [resource_path]
 		=> defaults: /magick, /public/images
 		=> generate initializer to define the route, manually define styles (default: small, medium, large)
 		=> controller to handle the requests
 		
 Once the generator has been run and the server restarted, you may review available configuration 
-types at http://mydevhost/:port/magickman/manage
+types at http://mydevhost:port/magickman/manage
 
 ## Usage
 
-### templates :
+	* templates use
+	* image generation
+	* not-found handling
+	* configuration
+
+### template use
 Once installed, on-demand image processing can take place by using the special
-helper tag: 'magick_tag'. It use is very similar to the standard 'image_tag' with 
+helper tag: 'magick_tag'. Use is very similar to the standard 'image_tag' with 
 the exception that it takes a 'format' argument. 
 
   <%= magick_tag "magickman.jpg", :medium  %>
@@ -54,42 +59,6 @@ on subsequent requests.
 
 Under the default configuration, all newly created files are put in public/.
 
-
-### formats
-
-Formats are specified in config/initializers/magickman.rb which should be
-created with the generator at instllation.  They may be edited to provide 
-a variety of custom formats according to your needs.
-
-#### defaults formats 
-    :thumb =>  '-resize 100x100\>',
-    :small =>  '-resize 400x400\>',
-    :medium => '-resize 600x600\>',
-    :large =>  '-resize 800x800\>'
-
-
-Formats are divided into 2 classes:  format string which begin with '-' are evaluated
-as option string to be passed to the imagemagick 'convert' program.  This is a powerful 
-program which serves a wide variety of cases in a single command. 
-
- $ convert $formatstring $sourceimg $targetimg
-
-For a format string :large =>"-resize 800x800\>", requesting image 'foo.large.jpg', the command will be
-
-  $ convert -resize 800x800\> assets/images/foo.jpg public/foo.large.jpg
-
-assuming that foo.jpg has been located in assets/images/
-
-When the format string does not begin with '-', it is assumed to be a custom command.
-For a format string :watermark =>"/usr/local/bin/watermark.rb"
-
- $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
-
-#### custom scripts
-Custom scripts can be in any language.  They should take input and output files from the command line 
-arguments, and exit with 0 upon success for maximum compatability. It is expected that the output image 
-has been created or at least exists before a custom script signals successful termination.
-
 ### not-found handling
   magickman allows a custom not-found image on a per-type basis, via config[:notfoundtypes].  
   It is assumed that files specified here have been pre-formatted according to their format
@@ -109,7 +78,52 @@ has been created or at least exists before a custom script signals successful te
   will be displayed in every image-aware client.  When config[:strict] is true, a 404 is 
   issued with the not-found image in the body.  This will display properly on most clients,
   but some clients may choose to ignore the content of 404 responses on resource requests.
-   
+
+### configuration
+	* formats
+	* output control
+	* source paths
+
+#### formats
+
+Formats are specified in config/initializers/magickman.rb which is created with the generator 
+at installation (see above).  They may be modified or added to provide a variety of custom formats 
+according to your needs.
+
+##### defaults formats 
+    :thumb =>  '-resize 50x50\>',
+    :small =>  '-resize 100x100\>',
+    :medium => '-resize 200x200\>',
+    :large =>  '-resize 400x400\>',
+    
+    :ct => '-resize 50x50^ -gravity center -extent 50x50',
+    :cs => '-resize 100x100^ -gravity center -extent 100x100',
+    :cm => '-resize 200x200^ -gravity center -extent 200x200',
+    :cl => '-resize 400x400^ -gravity center -extent 400x400'
+
+
+Formats are divided into 2 classes:  format string which begin with '-' are evaluated
+as option string to be passed to the imagemagick 'convert' program.  This is a powerful 
+program which serves a wide variety of cases in a single command. 
+
+    $ convert $formatstring $sourceimg $targetimg
+
+For a format string :large =>"-resize 800x800\>", requesting image 'foo.large.jpg', the command will be
+
+    $ convert -resize 800x800\> assets/images/foo.jpg public/foo.large.jpg
+
+assuming that foo.jpg has been located in assets/images/
+
+When the format string does not begin with '-', it is assumed to be a custom command.
+For a format string :watermark =>"/usr/local/bin/watermark.rb", the command will be:
+
+    $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
+
+##### custom scripts
+Custom scripts can be in any language.  They should take input and output files from the command line 
+arguments, and exit with 0 upon success for maximum compatability. It is expected that the output image 
+has been created or at least exists before a custom script signals successful termination.
+
 ## Contributing
 
 1. Fork it
