@@ -17,6 +17,7 @@ module MagickMan
     end
 
     def initialize(conf)
+      @source = conf[:source] || Rails.public_path.to_s
       @strict = conf[:strict] || false
       @cachetime = conf[:cachetime] || 3600
       @preferred = conf[:preferred]
@@ -29,9 +30,9 @@ module MagickMan
       @prefix = conf[:prefix] || 'magickman'
       @types =  conf[:types] || %W[jpg png]
       @formats =  conf[:formats] || {
-        :small=>  '-resize 100 100>',
-        :medium=> '-resize 400 400>',
-        :large=>  '-resize 800 800>'
+        :small=>  '-resize 50 50>',
+        :medium=> '-resize 200 200>',
+        :large=>  '-resize 400 400>'
       }
       Rails.application.paths["app/views"] << File.join(File.dirname(__FILE__),'views')
       Rails.application.config.assets.paths << File.join(File.dirname(__FILE__),'assets/images')
@@ -129,7 +130,7 @@ module MagickMan
     end
 
     def findimage(path)
-      ff = [Rails.public_path.to_s]
+      ff = [@source]
       if not @ignorestd
         ff.concat Rails.application.config.assets.paths.map { |p|
           File.dirname p

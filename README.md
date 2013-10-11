@@ -45,7 +45,7 @@ the exception that it takes a 'format' argument.
   
   <%= image_tag "magickman.jpg" %>
 
-magick_tag uses image_tag for the actual rendering and therefore supports all the options 
+magick_tag uses image_tag for the actual tag rendering and therefore supports all the options 
 that image_tag does.
 
 ### image generation
@@ -81,14 +81,40 @@ Under the default configuration, all newly created files are put in public/.
 
 ### configuration
 	* formats
+	* input control
 	* output control
-	* source paths
 
 #### formats
 
 Formats are specified in config/initializers/magickman.rb which is created with the generator 
 at installation (see above).  They may be modified or added to provide a variety of custom formats 
 according to your needs.
+
+Formats are divided into 2 classes:  format string which begin with '-' are evaluated
+as option string to be passed to the imagemagick 'convert' program.  This is a powerful 
+program which serves a wide variety of cases in a single command. 
+
+    $ convert $formatstring $sourceimg $targetimg
+
+For a format string :large =>"-resize 400x400\>", requesting image 'foo.large.jpg', the command will be
+
+    $ convert -resize 400x400\> assets/images/foo.jpg public/foo.large.jpg
+
+assuming that foo.jpg has been located in assets/images/
+
+##### custom scripts
+When the format string does not begin with '-', it is assumed to be a custom script.
+For a format string :watermark =>"/usr/local/bin/watermark.rb", the command will be:
+
+    $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
+
+Custom scripts may be used to execute more complex image processing than can be compressed
+into a single call to 'convert' and can be in any language.  
+They should take input and output files from the command line 
+arguments and exit with 0 upon success for maximum compatability. 
+It is expected that the output image has been created or at least exists before a 
+custom script signals successful termination.  THis will guarantee maximum 
+compatability.
 
 ##### defaults formats 
     :thumb =>  '-resize 50x50\>',
@@ -101,28 +127,19 @@ according to your needs.
     :cm => '-resize 200x200^ -gravity center -extent 200x200',
     :cl => '-resize 400x400^ -gravity center -extent 400x400'
 
+#### input control
 
-Formats are divided into 2 classes:  format string which begin with '-' are evaluated
-as option string to be passed to the imagemagick 'convert' program.  This is a powerful 
-program which serves a wide variety of cases in a single command. 
+ * conf[:types]  the type of images magickman will try to convert.  default: %W[jpg png]
+ * conf[:source] the directory which will always be searched for source images. default: public/
+ * conf[:ignorestd] if set to true only conf[:source] will be searched for source images, app/assets etc. will be ignored
 
-    $ convert $formatstring $sourceimg $targetimg
+#### output control
+By default, all generated images are placed in public/.  This is the same folder that the
+controller searches first when images are requested which assures that pre-generated
+images will always be used before a transformation is executed to derive a new one.
 
-For a format string :large =>"-resize 800x800\>", requesting image 'foo.large.jpg', the command will be
-
-    $ convert -resize 800x800\> assets/images/foo.jpg public/foo.large.jpg
-
-assuming that foo.jpg has been located in assets/images/
-
-When the format string does not begin with '-', it is assumed to be a custom command.
-For a format string :watermark =>"/usr/local/bin/watermark.rb", the command will be:
-
-    $ /usr/local/bin/watermark.rb assets/images/foo.jpg public/foo.large.jpg
-
-##### custom scripts
-Custom scripts can be in any language.  They should take input and output files from the command line 
-arguments, and exit with 0 upon success for maximum compatability. It is expected that the output image 
-has been created or at least exists before a custom script signals successful termination.
+  * conf[:target] may be modified to use another fodler, if so preferred.   
+  * conf[:preferred]  by default, the generated file will be of the same type as the source unless :preferred] has been set to one of the allowable types, in which case all generated files will be coerced to that type
 
 ## Contributing
 
