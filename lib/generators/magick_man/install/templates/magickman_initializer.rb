@@ -22,8 +22,9 @@ mm = MagickMan::MagickManager.config do |conf|
 #    :thumb => 'thumbnot.jpg'
   }
 
-  conf[:logger] = Logger.new(STDOUT)  
+#  conf[:logger] = Logger.new(STDOUT)  
 # named formats
+
   conf[:formats] = {
 # non-cropping, best-fit
     :thumb =>  '-resize 50x50\>',
@@ -31,10 +32,10 @@ mm = MagickMan::MagickManager.config do |conf|
     :medium => '-resize 200x200\>',
     :large =>  '-resize 400x400\>',
 # center-cropped, forced-fit
-    :ct => '-resize 50x50^ -gravity center -extent 50x50',
-    :cs => '-resize 100x100^ -gravity center -extent 100x100',
-    :cm => '-resize 200x200^ -gravity center -extent 200x200',
-    :cl => '-resize 400x400^ -gravity center -extent 400x400'
+    :ct => '-resize 40x30^   -gravity center -extent 40x30',
+    :cs => '-resize 80x60^ -gravity center -extent 80x60',
+    :cm => '-resize 160x120^ -gravity center -extent 160x120',
+    :cl => '-resize 320x240^ -gravity center -extent 320x240',
   }
 
 end
